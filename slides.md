@@ -145,73 +145,180 @@ onMounted(() => {
 </template>
 ```
 ````
+
+---
+transition: fade-out
+---
+
+# script setup 语法糖 
+- setup 函数
+
+setup() 函数是 vue3 中，专门为组件提供的新属性。它为我们使用 vue3的 Composition API 新特性提供了统一的入口, setup 函数会在 beforeCreate 、created 之前执行, vue3也是取消了这两个钩子，统一用setup代替, 该函数相当于一个生命周期函数，vue中过去的data，methods，watch等全部都用对应的新增api写在setup()函数中
+
+setup() 接收两个参数 props 和 context。它里面不能使用 this，而是通过 context 对象来代替当前执行上下文绑定的对象，context 对象有四个属性：attrs、slots、emit、expose
+
+里面通过 ref 和 reactive 代替以前的 data 语法，return 出去的内容，可以在模板直接使用，包括变量和方法
+
+- script setup 语法糖 
+
+script setup是在单文件组件 (SFC) 中使用组合式 API 的编译时语法糖。相比于普通的 script 语法更加简洁
+
+要使用这个语法，需要将 setup attribute 添加到 `<script>` 代码块上：
+
+这种写法会自动将所有顶级变量、函数，均会自动暴露给模板（template）使用
+这里强调一句 “暴露给模板，跟暴露给外部不是一回事”
+
+**调用时机**
+
+创建组件实例，然后初始化 props ，紧接着就调用setup 函数。从生命周期钩子的视角来看，它会在 beforeCreate 钩子之前被调用.
+<style>
+p{
+  font-size: 12px;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+</style>
 ---
 transition: slide-up
 level: 2
 ---
 
 ## 创建一个Vue 3 项目
-使用create-vue创建项目
-前提环境条件：已安装16.0或者更高版本的Node.js
+使用`create-vue`创建项目
+前提环境条件：已安装Node.js
 ```shell
 npm init vue@latest
 ```
-我们按照提示需求进行安装即可
-<img v-click class="h-300px" src="/install.png" />
+<div grid="~ cols-2 gap-1">
+<div>
+  我们按照提示需求进行安装即可
+ <img v-click class="h-300px" src="/install.png" />
+</div>
+
+<v-click>
+
+```js
+/** src/main.js */
+/** 1. 引入必要的模块和组件 */
+import './assets/main.css' // 引入全局样式文件
+import { createApp } from 'vue'// 创建Vue应用的基础
+import App from './App.vue'  // 引入根组件
+import { createPinia } from 'pinia' // 导入了 createPinia 函数
+import router from './router' // 导入了 router 实例
+
+/** 2. 创建Vue应用实例 */
+const app = createApp(App)
+
+/** 3. 注册插件和路由 方便全局使用 */
+// 将Pinia注册到Vue应用中，用于管理应用的状态。
+app.use(createPinia())
+// 将Vue Router注册到Vue应用中，用于管理页面路由。
+app.use(router)
+
+/**4. 挂载Vue应用 */
+// 将Vue应用挂载到DOM中的#app元素上
+app.mount('#app')
+
+```
+</v-click>
+</div>
+
+
+<style>
+  .slidev-code{
+    font-size:12px
+  }
+</style>
 
 ---
-transition: fade-out
----
-
-# 响应式原理
-<img  src="/relative.png" />
-
----
-layout: two-cols-header
-layoutClass: gap-2
+layout: cover
 ---
 
 # ref vs reactive
+
 Vue 3提供了两个主要的函数来创建响应式数据：ref 和 reactive。
+但这两者有什么区别，什么情况下用 ref，什么情况下用 reactive 呢？
 
-::left::
+---
 
-## ref
-```js
-import { ref } from 'vue'
+# ref
+接受一个内部值，返回一个响应式的、可更改的 ref 对象，此对象只有一个指向其内部值的属性 .value。
+- 参数
 
-let foo = 0
-let bar = ref(0)
+ref 的参数可以是：基本数据类型、引用数据类型、DOM的ref属性值
 
-foo = 1
-bar = 1 // ts-error
+- 使用
+
+在模板中使用 ref 时，我们不需要加 .value，因为当 ref 在模板中作为顶层属性被访问时，它们会被自动解包，但在js中，访问和更新数据都需要加 .value。
+
+```ts
+<script setup>
+  import { ref } from 'vue'
+  const product = ref({ price: 0 })
+
+  const changeProductPrice = () => {
+    product.value.price += 10
+  }
+</script>
+
+<template>
+  <div class="main">
+    <p>price: {{ product.price }}</p>
+    <button @click="changeProductPrice">修改产品价格</button>
+  </div>
+</template>
 ```
 
-PROS
-- 显式调用，类型检查
-- 相比reactive 局限小
-CONS
-- .value
+---
 
-::right::
+# reactive
 
-## reactive
-```js
-import { reactive } from 'vue'
+- 作用:
 
-const foo = { prop: 0 }
-const bar = reactive({ prop: 0 })
+reactive 的作用是将一个普通的对象转换成响应式对象。它会递归地将对象的所有属性转换为响应式数据。它返回的是一个 Proxy 对象。
 
-foo.prop = 1
-bar.prop = 1
+- 参数
+
+reactive 的参数只能是对象或者数组或者像 Map、Set 这样的集合类型。
+
+- 基本用法
+```vue 
+<script setup>
+  import { reactive } from 'vue'
+
+  // 使用 reactive 创建一个包含多个响应式属性的对象
+  const person = reactive({
+    name: 'Echo',
+    age: 25,
+  })
+
+  console.log(person.name); // 读取属性值：'Echo'
+  person.age = 28;          // 修改属性值
+  console.log(person.age);  // 读取修改后的属性值：28
+
+</script>
+```
+---
+
+# reactive 局限性：
+
+- 响应性丢失：
+```javascript
+const state = reactive({ count: 0 });
+
+// 函数接收的是普通数字，无法跟踪 state.count 的变化
+callSomeFunction(state.count);
+
+// 解构导致响应性丢失
+let { count } = state;
+count++;
+
+// 无法替换整个对象
+let state = reactive({ count: 0 });
+state = reactive({ count: 1 });  // 不会生效
 ```
 
-PROS
-- 自动Unwrap(即不需要.value)
-CONS
-- 在类型上和一般对象没有区别
-- 使用ES6 解构会使响应性丢失
-- 需要使用箭头函数包装才能使用watch
+在组合式 API 中，推荐使用 ref() 函数来声明响应式状态
 
 ---
 transition: slide-up
@@ -278,14 +385,25 @@ const rawHtml = ref('<span style="color:red">Hi!</span>')
 ````
 
 - 动态绑定多个值
+````md magic-move
 ```vue
 const objectOfAttrs = {
   id: 'container',
   class: 'wrapper'
 }
+
 <div v-bind="objectOfAttrs"></div>
+```
+
+```vue
+const objectOfAttrs = {
+  id: 'container',
+  class: 'wrapper'
+}
+
 <div :id="objectOfAttrs.id" :class="objectOfAttrs.class"></div>
 ```
+````
 
 - 使用 JavaScript 表达式
 
@@ -306,11 +424,12 @@ transition: fade-out
 # computed
 
 ````md magic-move {lines:true}
-```ts
+```vue
 <script setup>
 import { reactive, computed } from 'vue'
 
 const arr = ref([1,2,3,4,5,6,7])
+</script>
 
 <template>
   <p>原始数组:{{ arr }}</p>
@@ -532,28 +651,257 @@ p {
 
 # 事件处理
 
-## 监听事件
+### 监听事件
+我们可以使用 v-on 指令 (简写为 @) 来监听 DOM 事件，并在事件触发时执行对应的 JavaScript。
 
-## 内联事件处理器
+用法：`v-on:click="handler"` 或 `@click="handler"`。
+事件处理器 (handler) 的值可以是：
+
+内联事件处理器：事件被触发时执行的内联 JavaScript 语句 (与 onclick 类似)。
+```js
+const count = ref(0)
+
+<button @click="count++">Add 1</button>
+<p>Count is: {{ count }}</p>
+```
+
+方法事件处理器：一个指向组件上定义的方法的属性名或是路径。
+
+```js
+const name = ref('Vue.js')
+
+function greet(event) {
+  alert(`Hello ${name.value}!`)
+  // `event` 是 DOM 原生事件
+  if (event) {
+    alert(event.target.tagName)
+  }
+}
+```
+```js
+<!-- `greet` 是上面定义过的方法名 -->
+<button @click="greet">Greet</button>
+```
+
+<style>
+p{
+  font-size:14px
+}
+</style>
+
+---
+
+# 事件修饰符
+- `.stop`: 阻止单击事件继续冒泡
+  ```html
+  <div @click="onStop(1)">
+    <div @click="onStop(2)">
+      <div @click.stop="onStop(3)">.stop</div>
+    </div>
+  </div>
+  ```
+  上面代码如果没加.stop，就会从内至外冒泡，依次执行：onStop(3)、onStop(2)、onStop(1)
+
+  但是我们在onStop(3)的地方加上.stop，点击onStop(3)的时候就只会执行onStop(3),不会向外冒泡了
+
+- `.prevent`: 阻止浏览器的默认行为
+    - 超链接的自动跳转
+    - form标签中submit 按钮点击导致的页面刷新
+    - 网页鼠标右键
+- `.capture`: 添加事件侦听器时使用事件捕获模式
+- `.self`:  只执行直接作用在该元素身上的事件，会忽略其他元素的冒泡或者捕获
+- `.once`: 事件只会触发一次
+- `.passive`: 告诉浏览器不用去查询，我们没有preventDefault阻止默认行为
+
+<style>
+p,li{
+  font-size:12px;
+  margin: 0.25rem 0;
+
+}
+</style>
+
+---
+
+# 按键修饰符
+常用按键别名如下：
+
+- `.enter`: 回车
+- `.tab`: 换行(特殊键, 必须配合keydown 去使用)
+- `.delete`: 捕获“删除”和“退格”键
+- `.esc`: 退回
+- `.space`: 空格
+- `.up`: 上
+- `.down`: 下
+- `.left`: 左
+- `.right`: 右
+
+```html
+<input @keydown.tab="submit" />
+<input @keyup.enter="submit" />
+```
+
+---
+
+# 系统修饰符
+可以用如下修饰符来实现仅在按下相应按键时才触发鼠标或键盘事件的监听器。
+
+- `.ctrl`
+- `.alt`
+- `.shift`
+- `.meta`
+```html
+
+<!-- Alt + Enter -->
+<input @keyup.alt.enter="clear" />
+
+<!-- Ctrl + Click -->
+<div @click.ctrl="doSomething">Do something</div>
+
+<!-- 即使 Alt 或 Shift 被一同按下时也会触发 -->
+<button @click.ctrl="onClick">A</button>
+
+<!-- 有且只有 Ctrl 被按下的时候才触发 -->
+<button @click.ctrl.exact="onCtrlClick">A</button>
+
+<!-- 没有任何系统修饰符被按下的时候才触发 -->
+<button @click.exact="onClick">A</button>
+```
+
+---
+
+# 鼠标按钮修饰符
+
+- `.left`
+- `.right`
+- `.middle`
+
+```js
+<div @click.right.prevent="submit">禁止鼠标右键默认事件</div>
+```
+
+<style>
+p{
+  font-size:14px
+}
+</style>
+
 
 ---
 layout: two-cols
 layoutClass: gap-16
 transition: fade-out
 ---
+
 # watch
 作用: 侦听一个或者多个数据的变化,数据变化时执行回调函数
+
 两个额外参数: 1.immediate(立即执行) 2.deep(深度侦听)
 
+1.使用 watch 侦听 ref 定义的响应式数据（参数是原始数据类型的情况）
+
+```ts
+<script setup>
+  import { ref, watch } from 'vue'
+
+  let count = ref(0)
+  watch(count, (newValue, oldValue) => {
+    console.log(`count的值变化了，新值：${newValue}，旧值：${oldValue}`)
+  })
+  const changeCount = () => {
+    count.value += 10;
+  }
+</script>
+
+<template>
+  <div class="main">
+    <p>count: {{ count }}</p>
+    <button @click="changeCount">更新count</button>
+  </div>
+</template>
+```
+2. 使用 watch 侦听 ref 定义的响应式数据（参数是引用数据类型的情况）
+
+```ts
+<script setup>
+  import { ref, watch } from 'vue'
+
+  let count = ref({ num: 0 })
+  watch(count, () => {
+    console.log(`count的值发生变化了`)
+  })
+  const changeCount = () => {
+    count.value.num += 10;
+  }
+</script>
+
+<template>
+  <div class="main">
+    <p>count: {{ count }}</p>
+    <button @click="changeCount">更新count</button>
+  </div>
+</template>
+```
+这种情况是因为 watch 并没有对 count 进行深度侦听，但是需要注意的是，此时的 DOM 是能够更新的，
+
+要想深度侦听，只需要加一个对应的参数即可，{ deep: true }。
+
+3.  使用 watch 侦听 reactive 定义的响应式数据
+
+```ts
+<script setup>
+  import { reactive, watch } from 'vue'
+
+  let count = reactive({ num: 0 })
+  watch(count, () => {
+    console.log(`count的值发生变化了`)
+  })
+  const changeCount = () => {
+    count.num += 10;
+  }
+</script>
+
+<template>
+  <div class="main">
+    <p>count: {{ count }}</p>
+    <button @click="changeCount">更新count</button>
+  </div>
+</template>
+```
+
+上面这段代码中,用 watch 函数侦听 reactive 数据时，不需要添加 deep 属性，也能够对其深度侦听。
+ 
+---
+
+# 表单输入绑定
+
+
+---
+layout: two-cols
+level: 2
+---
+
+# 生命周期
+setup 初始化组件状态，定义响应式数据和方法
+- onBeforeMount() 注册一个钩子，在组件被挂载之前被调用。
+- onMounted() 注册一个回调函数，在组件挂载完成后执行。
+- onBeforeUpdate()注册一个钩子，在组件即将因为响应式状态变更而更新其 DOM 树之前调用。
+- onUpdated() 注册一个回调函数，在组件因为响应式状态变更而更新其 DOM 树之后调用。
+- onBeforeUnmount()注册一个钩子，在组件实例被卸载之前调用。
+- onUnmounted() 注册一个回调函数，在组件实例被卸载之后调用。可以在这个钩子中手动清理一些副作用，例如计时器、DOM 事件监听器或者与服务器的连接。
+
+---
+
+# 组件基础
+![alt text](/image.png)
+
+
+---
 
 ---
 layout: image-right
 image: https://cover.sli.dev
 ---
-
-# 表单输入绑定
-
-Use code snippets and get the highlighting directly, and even types hover![^1]
 
 ```ts {all|5|7|7-8|10|all} twoslash
 // TwoSlash enables TypeScript hover information
@@ -589,21 +937,9 @@ doubled.value = 2
 }
 </style>
 
-<!--
-Notes can also sync with clicks
-
-[click] This will be highlighted after the first click
-
-[click] Highlighted with `count = ref(0)`
-
-[click:3] Last click (skip two clicks)
--->
-
----
-level: 2
 ---
 
-# 生命周期
+#
 
 Powered by [shiki-magic-move](https://shiki-magic-move.netlify.app/), Slidev supports animations across multiple code snippets.
 
