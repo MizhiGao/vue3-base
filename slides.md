@@ -7,9 +7,7 @@ background: https://cover.sli.dev
 # some information about your slides (markdown enabled)
 title: Vue3基础
 info: |
-  ## Slidev Starter Template
-  Presentation slides for developers.
-
+  ##
   Learn more at [vuejs](https://cn.vuejs.org/)
 # apply unocss classes to the current slide
 class: text-center
@@ -30,11 +28,9 @@ mdc: true
 
 # Vue3基础
 
-Presentation slides for developers
-
 <div class="pt-12">
   <span @click="$slidev.nav.next" class="px-2 py-1 rounded cursor-pointer" hover="bg-white bg-opacity-10">
-    Press Space for next page <carbon:arrow-right class="inline"/>
+    高咪咪 <carbon:arrow-right class="inline"/>
   </span>
 </div>
 
@@ -47,10 +43,6 @@ Presentation slides for developers
     <carbon-logo-github />
   </a>
 </div>
-
-<!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes)
--->
 
 ---
 transition: fade-out
@@ -65,20 +57,6 @@ Vue 3 的新特性
 - **更好的性能** - Vue 3的虚拟DOM重写，提供了更快的挂载、修补和渲染速度。
 - **更小的打包大小** - 由于新的架构和树摇技术，Vue 3的打包大小比Vue 2小。
 - **更好的TypeScript支持** - Vue 3在内部使用了TypeScript，因此它为开发者提供了更好的TypeScript支持。
-
-
-<!--
-You can have `style` tag in markdown to override the style for the current page.
-Learn more: https://sli.dev/guide/syntax#embedded-styles
--->
-
-<style>
-
-</style>
-
-<!--
-Here is another comment.
--->
 
 ---
 layout: default
@@ -172,29 +150,27 @@ transition: slide-up
 level: 2
 ---
 
-# 创建一个Vue 3 项目
+## 创建一个Vue 3 项目
 使用create-vue创建项目
 前提环境条件：已安装16.0或者更高版本的Node.js
 ```shell
 npm init vue@latest
 ```
 我们按照提示需求进行安装即可
-```shell
-cd vue-project
-npm install
-npm run dev
-```
+<img v-click class="h-300px" src="/install.png" />
 
 ---
 transition: fade-out
 ---
+
 # 响应式原理
-<img src="/relative.png" />
+<img  src="/relative.png" />
 
 ---
 layout: two-cols-header
 layoutClass: gap-2
 ---
+
 # ref vs reactive
 Vue 3提供了两个主要的函数来创建响应式数据：ref 和 reactive。
 
@@ -210,12 +186,12 @@ let bar = ref(0)
 foo = 1
 bar = 1 // ts-error
 ```
- 
+
 PROS
 - 显式调用，类型检查
 - 相比reactive 局限小
 CONS
-- .value 
+- .value
 
 ::right::
 
@@ -236,12 +212,99 @@ CONS
 - 在类型上和一般对象没有区别
 - 使用ES6 解构会使响应性丢失
 - 需要使用箭头函数包装才能使用watch
+
+---
+transition: slide-up
+---
+
+# 模板语法
+Vue 使用一种基于 HTML 的模板语法，使我们能够声明式地将其组件实例的数据绑定到呈现的 DOM 上。
+
+<div grid="~ cols-2 gap-2">
+<div>文本插值</div>
+<div>原始 HTML</div>
+```vue
+<span>Message: {{ msg }}</span>
+const msg = ref('Hello World')
+```
+
+```vue
+const rawHtml = ref('<span style="color:red">Hi!</span>')
+<template>
+  <p>Using v-html directive:
+    <span v-html="rawHtml"></span>
+</p>
+</template>
+```
+<!-- ./components/HelloWorld.vue -->
+<HelloWorld v-click />
+
+<HtmlRender v-click />
+
+</div>
+
+- 文本插值
+
+最基本的数据绑定形式是文本插值，它使用的是“Mustache”语法 (即双大括号)：双大括号标签会被替换为相应组件实例中 msg 属性的值。同时每次 msg 属性更改时它也会同步更新。
+
+- 原始 HTML
+
+双大括号会将数据解释为纯文本，而不是 HTML。若想插入 HTML，你需要使用 v-html 指令：
+
+
+---
+
+# 模板语法
+
+- Attribute 绑定
+
+双大括号不能在 HTML attributes 中使用。想要响应式地绑定一个 attribute，应该使用 v-bind 指令：
+````md magic-move
+```vue
+<div v-bind:id="dynamicId"></div>
+```
+
+```vue
+<div :id="dynamicId"></div>
+```
+
+```vue
+<div :id="id"></div>
+```
+
+```vue
+<div :id></div>
+```
+````
+
+- 动态绑定多个值
+```vue
+const objectOfAttrs = {
+  id: 'container',
+  class: 'wrapper'
+}
+<div v-bind="objectOfAttrs"></div>
+<div :id="objectOfAttrs.id" :class="objectOfAttrs.class"></div>
+```
+
+- 使用 JavaScript 表达式
+
+```js
+{{ number + 1 }}
+
+{{ ok ? 'YES' : 'NO' }}
+
+{{ message.split('').reverse().join('') }}
+
+```
 ---
 layout: two-cols
 layoutClass: gap-4
 transition: fade-out
 ---
+
 # computed
+
 ````md magic-move {lines:true}
 ```ts
 <script setup>
@@ -271,28 +334,207 @@ const arrFilter = computed(() => {
 
 <template>
   <p>原始数组:{{ arr }}</p>
-  <span>计算属性计算得出的数组：{{ arrFilter }}</span>
+  <span>{{ arrFilter }}</span>
 </template>
 ```
 ````
 ::right::
-<v-click>
 
-通过实例,我们发现,只要计算属性依赖的响应式数据发生变化,计算属性才会进行计算,否则只会取上一次计算的结果,这个就是计算属性的缓存
+计算属性（computed properties）是基于响应式依赖进行缓存的属性。它们只有在其依赖发生变化时才会重新计算。这使得计算属性非常适合处理复杂逻辑和性能优化。
 
-注意点
-1.计算属性中不应该有"副作用"
+- 注意点
+
+**计算属性中不应该有"副作用"**
+
 比如: 异步请求/修改dom
 
 什么副作用,计算属性的主要作用是依赖响应式数据进行计算获取一个新的值,除了这个作用之外,我们加上去别的都是副作用
 
 这些副作用,我们可以交给watch来做
 
-2.避免直接修改计算属性的值
+**避免直接修改计算属性的值**
 
 从计算属性返回的值是派生状态。可以把它看作是一个“临时快照”，每当源状态发生变化时，就会创建一个新的快照。
 更改快照是没有意义的，因此计算属性的返回值应该被视为只读的，并且永远不应该被更改——应该更新它所依赖的源状态以触发新的计算。
-</v-click>
+
+<style>
+p {
+  font-size:14px
+}
+</style>
+
+---
+layout: two-cols
+layoutClass: gap-2
+---
+
+# 类与样式绑定
+
+- 绑定 HTML class
+
+```vue
+<!-- /绑定对象/ -->
+<div :class="{ active: isActive }"></div>
+<!-- :class 指令也可以和一般的 class attribute 共存 -->
+<div class="static" :class="{ active: isActive, 'text-danger': hasError }"></div>
+
+const classObject = reactive({
+  active: true,
+  'text-danger': false
+})
+
+<div :class="classObject"></div>
+```
+
+```vue
+<!-- 绑定数组 -->
+const activeClass = ref('active')
+const errorClass = ref('text-danger')
+<div :class="[activeClass, errorClass]"></div>
+<div :class="[isActive ? activeClass : '', errorClass]"></div>
+```
+
+
+::right::
+
+绑定内联样式
+
+``` vue
+<!-- 绑定对象 -->
+<!-- :style 支持绑定 JavaScript 对象值，对应的是 HTML 元素的 style 属性： -->
+const activeColor = ref('red')
+const fontSize = ref(30)
+
+<div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+
+const styleObject = reactive({
+  color: 'red',
+  fontSize: '30px'
+})
+<div :style="styleObject"></div>
+```
+
+```vue {all|13}{maxHeight:'100'}
+<!-- 绑定数组 -->
+<!-- :style 绑定一个包含多个样式对象的数组。这些对象会被合并后渲染到同一元素上 -->
+const styleArray = reactive([
+  {
+    color: 'blue', // 样式对象1
+    fontSize: '14px'
+  },
+  {
+    backgroundColor: 'yellow', // 样式对象2
+    padding: '10px'
+  }
+])
+<div :style="styleArray"></div>
+```
+
+---
+layout: two-cols
+layoutClass: gap-2
+---
+
+# 条件渲染
+
+<ConditionalRendering />
+
+```js
+<div v-if="type == 'A'">A</div>
+<div v-else-if="type == 'B'">B</div>
+<div v-else-if="type == 'C'">C</div>
+<div v-else>Not A/B/C</div>
+```
+
+`v-if`
+
+- 是“真实的”按条件渲染，因为它确保了在切换时，条件区块内的事件监听器和子组件都会被销毁与重建。
+- 是惰性的：如果在初次渲染时条件值为 false，则不会做任何事。条件区块只有当条件首次变为 true 时才被渲染。
+- 有更高的切换开销
+
+::right::
+
+```js {13-14}
+<script setup>
+import { ref } from 'vue'
+
+const awesome = ref(true)
+
+function toggle() {
+  awesome.value = !awesome.value
+}
+</script>
+
+<template>
+  <button @click="toggle">toggle</button>
+  <h1 v-if="awesome">Vue is awesome!</h1>
+  <h1 v-else>Oh no 😢</h1>
+</template>
+```
+
+`v-show`
+
+- 会在 DOM 渲染中保留该元素；
+- 仅切换了该元素上名为 `display` 的CSS属性。
+- 不支持在 `<template>` 元素上使用，也不能和 `v-else` 搭配使用。
+- 有更高的初始渲染开销
+
+<style>
+ul,li{
+  font-size:14px
+}
+</style>
+
+---
+
+# 列表渲染
+`v-for`
+<div grid="~ cols-2 gap-2">
+
+```vue
+const parentMessage = ref('Parent')
+const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
+
+<li v-for="(item, index) in items">
+  {{ parentMessage }} - {{ index }} - {{ item.message }}
+</li>
+```
+
+```vue
+const myObject = ref({
+  title: 'How to do lists in Vue',
+  author: 'Jane Doe',
+  publishedAt: '2016-04-10'
+})
+<li v-for="(value, key) in myObject">
+  {{ key }}: {{ value }}
+</li>
+```
+
+</div>
+
+
+你也可以使用 `v-for` 来遍历一个对象的所有属性。遍历的顺序会基于对该对象调用 `Object.keys()` 的返回值来决定。
+
+
+
+**同时使用 v-if 和 v-for 是不推荐的**
+
+当它们同时存在于一个节点上时，`v-if` 比` v-for` 的优先级更高。这意味着 `v-if` 的条件将无法访问到 `v-for` 作用域内定义的变量别名。
+
+<style>
+p {
+  font-size:12px
+}
+</style>
+
+---
+
+# 事件处理
+
+## 监听事件
+
+## 内联事件处理器
 
 ---
 layout: two-cols
@@ -300,32 +542,16 @@ layoutClass: gap-16
 transition: fade-out
 ---
 # watch
+作用: 侦听一个或者多个数据的变化,数据变化时执行回调函数
+两个额外参数: 1.immediate(立即执行) 2.deep(深度侦听)
 
-
-
----
-layout: two-cols
-layoutClass: gap-16
----
-
-# 
-<img
-  class="w-80 opacity-100"
-  src="/vue-logo.svg"
-  alt=""
-/>
-vue3
-
-::right::
-
-<Toc v-click minDepth="1" maxDepth="2"></Toc>
 
 ---
 layout: image-right
 image: https://cover.sli.dev
 ---
 
-# Code
+# 表单输入绑定
 
 Use code snippets and get the highlighting directly, and even types hover![^1]
 
@@ -377,7 +603,7 @@ Notes can also sync with clicks
 level: 2
 ---
 
-# Shiki Magic Move
+# 生命周期
 
 Powered by [shiki-magic-move](https://shiki-magic-move.netlify.app/), Slidev supports animations across multiple code snippets.
 
@@ -449,7 +675,7 @@ const author = {
 
 ---
 
-# Components
+# 组件基础
 
 <div grid="~ cols-2 gap-4">
 <div>
@@ -641,7 +867,7 @@ const final = {
 
 # LaTeX
 
- 
+
 
 ---
 
