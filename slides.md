@@ -96,7 +96,7 @@ export default {
 <script>
 import { ref, onMounted } from 'vue'
 export default{
-  setup(){ //setup 函数是组件的入口点，在组件实例被创建和初始化之后，但在渲染发生之前被调用。
+  setup(){ //setup() 钩子是在组件中使用组合式 API 的入口，在组件实例被创建和初始化之后，但在渲染发生之前被调用。
     // 响应式状态
     const count = ref(0)
     // 用来修改状态、触发更新的函数
@@ -150,7 +150,7 @@ onMounted(() => {
 transition: fade-out
 ---
 
-# `<script setup>` 语法糖
+# `<script setup>` 
 - setup 函数
 
 setup() 函数是 vue3 中，专门为组件提供的新属性。它为我们使用 vue3的 Composition API 新特性提供了统一的入口, setup 函数会在 beforeCreate 、created 之前执行, vue3也是取消了这两个钩子，统一用setup代替, 该函数相当于一个生命周期函数，vue中过去的data，methods，watch等全部都用对应的新增api写在setup()函数中
@@ -475,7 +475,7 @@ import { reactive, computed } from 'vue'
 
 const arr = ref([1,2,3,4,5,6,7])
 
-// 一个计算属性 ref
+// 一个计算属性 返回一个只读的响应式 ref 对象
 const arrFilter = computed(() => {
   return arr.value.filter((item) => item > 2)
 })
@@ -524,9 +524,9 @@ layoutClass: gap-2
 ```vue
 <!-- /绑定对象/ -->
 <div :class="{ active: isActive }"></div>
+<!-- 上面的语法表示 active 是否存在取决于数据属性 isActive 的真假值。 -->
 <!-- :class 指令也可以和一般的 class attribute 共存 -->
 <div class="static" :class="{ active: isActive, 'text-danger': hasError }"></div>
-
 const classObject = reactive({
   active: true,
   'text-danger': false
@@ -600,6 +600,7 @@ layoutClass: gap-2
 - 是“真实的”按条件渲染，因为它确保了在切换时，条件区块内的事件监听器和子组件都会被销毁与重建。
 - 是惰性的：如果在初次渲染时条件值为 false，则不会做任何事。条件区块只有当条件首次变为 true 时才被渲染。
 - 有更高的切换开销
+- 如果在运行时绑定条件很少改变，则 v-if 会更合适。
 
 ::right::
 
@@ -627,6 +628,7 @@ function toggle() {
 - 仅切换了该元素上名为 `display` 的CSS属性。
 - 不支持在 `<template>` 元素上使用，也不能和 `v-else` 搭配使用。
 - 有更高的初始渲染开销
+- 如果需要频繁切换，则使用 v-show 较好；
 
 <style>
 ul,li{
@@ -719,7 +721,14 @@ p{
 
 ---
 
-# 事件修饰符
+# 
+
+### 事件修饰符
+
+在处理事件时调用 event.preventDefault() 或 event.stopPropagation() 是很常见的。尽管我们可以直接在方法内调用，但如果方法能更专注于数据逻辑而不用去处理 DOM 事件的细节会更好。
+
+为解决这一问题，Vue 为 v-on 提供了事件修饰符。修饰符是用 . 表示的指令后缀，包含以下这些：
+
 - `.stop`: 阻止单击事件继续冒泡
   ```html
   <div @click="onStop(1)">
@@ -733,9 +742,8 @@ p{
   但是我们在onStop(3)的地方加上.stop，点击onStop(3)的时候就只会执行onStop(3),不会向外冒泡了
 
 - `.prevent`: 阻止浏览器的默认行为
-    - 超链接的自动跳转
-    - form标签中submit 按钮点击导致的页面刷新
-    - 网页鼠标右键
+
+        - 超链接的自动跳转、form标签中submit 按钮点击导致的页面刷新、网页鼠标右键
 - `.capture`: 添加事件侦听器时使用事件捕获模式
 - `.self`:  只执行直接作用在该元素身上的事件，会忽略其他元素的冒泡或者捕获
 - `.once`: 事件只会触发一次
@@ -752,8 +760,8 @@ p,li{
 ---
 
 # 按键修饰符
-常用按键别名如下：
-
+在监听键盘事件时，我们经常需要检查特定的按键。Vue 允许在 v-on 或 @ 监听按键事件时添加按键修饰符
+Vue 为一些常用的按键提供了别名：
 - `.enter`: 回车
 - `.tab`: 换行(特殊键, 必须配合keydown 去使用)
 - `.delete`: 捕获“删除”和“退格”键
@@ -772,7 +780,7 @@ p,li{
 ---
 
 # 系统修饰符
-可以用如下修饰符来实现仅在按下相应按键时才触发鼠标或键盘事件的监听器。
+可以用如下修饰符来实现在按下相应按键时才触发鼠标或键盘事件的监听器。
 
 - `.ctrl`
 - `.alt`
@@ -865,7 +873,7 @@ const text = ref('')
 ---
 
 # 侦听器
-在Vue3中可以通过watch或者是watchEffect来创建侦听器。watch需要手动指定监听属性。而watchEffect类型计算属性，它会追踪在回调中使用的属性进行监听。
+在Vue3中可以通过watch或者是watchEffect来创建侦听器。watch需要手动指定监听属性。而watchEffect，它会追踪在回调中使用的属性进行监听。
 
 - watch
 
@@ -967,7 +975,7 @@ level:6
 ```
 这种情况是因为 watch 并没有对 count 进行深度侦听，但是需要注意的是，此时的 DOM 是能够更新的，
 
-要想深度侦听，只需要加一个对应的参数即可，{ deep: true }。
+要想深度侦听，只需要加一个对应的参数即可`{ deep: true }`。
 
 ::right::
 
