@@ -6,8 +6,8 @@ const msg = ref('from parent')
 </script>
 
 <template>
-  <body class="body">
+  <div class="body">
     <ChildComponentWithSlot></ChildComponentWithSlot>
 
-  </body>
+  </div>
 </template>

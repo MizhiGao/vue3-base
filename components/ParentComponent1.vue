@@ -1,13 +1,17 @@
 <script setup>
-import { ref } from 'vue'
-import ChildComponentWithProps from './ChildComponentWithProps.vue'
+import { ref } from 'vue';
+import ChildComponent from './ChildComponent.vue';
 
-const greeting = ref('Hello from parent')
+const message = ref('Hello from Parent Component');
+
+function handleUpdateMessage(newMessage) {
+  message.value = newMessage;
+}
 </script>
 
 <template>
-  <body class="body">
-    <ChildComponentWithProps :msg="greeting" />
-
-  </body>
+  <div class="body">
+    <p>{{ message }}</p>
+    <ChildComponent :msg="message" @updateMessage="handleUpdateMessage" />
+  </div>
 </template>

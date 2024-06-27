@@ -150,7 +150,7 @@ onMounted(() => {
 transition: fade-out
 ---
 
-# script setup 语法糖 
+# `<script setup>` 语法糖
 - setup 函数
 
 setup() 函数是 vue3 中，专门为组件提供的新属性。它为我们使用 vue3的 Composition API 新特性提供了统一的入口, setup 函数会在 beforeCreate 、created 之前执行, vue3也是取消了这两个钩子，统一用setup代替, 该函数相当于一个生命周期函数，vue中过去的data，methods，watch等全部都用对应的新增api写在setup()函数中
@@ -159,14 +159,14 @@ setup() 接收两个参数 props 和 context。它里面不能使用 this，而�
 
 里面通过 ref 和 reactive 代替以前的 data 语法，return 出去的内容，可以在模板直接使用，包括变量和方法
 
-- script setup 语法糖 
+- script setup 语法糖
 
 script setup是在单文件组件 (SFC) 中使用组合式 API 的编译时语法糖。相比于普通的 script 语法更加简洁
 
 要使用这个语法，需要将 setup attribute 添加到 `<script>` 代码块上：
 
 这种写法会自动将所有顶级变量、函数，均会自动暴露给模板（template）使用
-这里强调一句 “暴露给模板，跟暴露给外部不是一回事”
+这里强调一句 “暴露给模板，跟暴露给外部 (defineExpose) 不是一回事”
 
 **调用时机**
 
@@ -232,11 +232,13 @@ app.mount('#app')
 
 ---
 layout: cover
+class: text-center
 ---
 
 # ref vs reactive
 
 Vue 3提供了两个主要的函数来创建响应式数据：ref 和 reactive。
+
 但这两者有什么区别，什么情况下用 ref，什么情况下用 reactive 呢？
 
 ---
@@ -249,25 +251,38 @@ ref 的参数可以是：基本数据类型、引用数据类型、DOM的ref属�
 
 - 使用
 
-在模板中使用 ref 时，我们不需要加 .value，因为当 ref 在模板中作为顶层属性被访问时，它们会被自动解包，但在js中，访问和更新数据都需要加 .value。
+在模板中使用 ref 时，我们不需要加 `.value`，因为当 ref 在模板中作为顶层属性被访问时，它们会被自动解包，但在js中，访问和更新数据都需要加 `.value`。
 
-```ts
+```ts {all|3-4,6-7,12-13}
 <script setup>
   import { ref } from 'vue'
   const product = ref({ price: 0 })
-
+  const total = ref(100)
   const changeProductPrice = () => {
     product.value.price += 10
+    total.value += 10
   }
 </script>
-
 <template>
   <div class="main">
     <p>price: {{ product.price }}</p>
+    <p>total: {{ total }}</p>
     <button @click="changeProductPrice">修改产品价格</button>
   </div>
 </template>
 ```
+
+<style>
+ul,li{
+  font-size: 12px
+}
+
+p{
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+</style>
 
 ---
 
@@ -282,7 +297,7 @@ reactive 的作用是将一个普通的对象转换成响应式对象。它会�
 reactive 的参数只能是对象或者数组或者像 Map、Set 这样的集合类型。
 
 - 基本用法
-```vue 
+```vue
 <script setup>
   import { reactive } from 'vue'
 
@@ -298,6 +313,19 @@ reactive 的参数只能是对象或者数组或者像 Map、Set 这样的集合
 
 </script>
 ```
+
+<style>
+ul,li{
+  font-size: 12px
+}
+
+p{
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+</style>
+
 ---
 
 # reactive 局限性：
@@ -315,6 +343,8 @@ count++;
 
 // 无法替换整个对象
 let state = reactive({ count: 0 });
+// 创建了一个新的响应式对象并将其分配给 state 变量
+// 只是改变了 state 变量的引用，不会影响原来的响应式对象
 state = reactive({ count: 1 });  // 不会生效
 ```
 
@@ -660,14 +690,13 @@ p {
 内联事件处理器：事件被触发时执行的内联 JavaScript 语句 (与 onclick 类似)。
 ```js
 const count = ref(0)
-
 <button @click="count++">Add 1</button>
 <p>Count is: {{ count }}</p>
 ```
 
 方法事件处理器：一个指向组件上定义的方法的属性名或是路径。
 
-```js
+```js {all|12}{maxHeight:'200'}
 const name = ref('Vue.js')
 
 function greet(event) {
@@ -677,8 +706,7 @@ function greet(event) {
     alert(event.target.tagName)
   }
 }
-```
-```js
+
 <!-- `greet` 是上面定义过的方法名 -->
 <button @click="greet">Greet</button>
 ```
@@ -791,15 +819,15 @@ layout: two-cols
 ---
 
 # 表单输入绑定
- 
+
 <FormBindings/>
 <br>
 <br>
 通过一起使用 v-bind 和 v-on，我们可以为表单输入元素创建双向绑定：
 
 ```js
-<input 
-  :value="text" 
+<input
+  :value="text"
   @input="event => text = event.target.value">
 ```
 v-model 指令帮我们简化了这一步骤：
@@ -810,10 +838,10 @@ v-model 指令帮我们简化了这一步骤：
 
 ::right::
 
-# 
+#
 
 
-```js 
+```js
 <script setup>
 import { ref } from 'vue'
 
@@ -843,17 +871,17 @@ const text = ref('')
 
 作用: 侦听一个或者多个数据的变化,数据变化时执行回调函数
 
-watch接收三个参数: 
+watch接收三个参数:
 
 1 - 需要监听的对象
 
-2 - 侦听器回调函数 
+2 - 侦听器回调函数
 
 3 -  配置对象。
 
 watch 的第一个参数可以是不同形式的“数据源”：它可以是一个 ref (包括计算属性)、一个响应式对象、一个 getter 函数、或多个数据源组成的数组：
 
-- 配置对象 
+- 配置对象
 
 deep: 强制转成深层侦听器
 
@@ -977,6 +1005,8 @@ level:6
   watch(count, () => {
     console.log(`count的值发生变化了`)
   })
+  // 一个返回响应式对象的 getter 函数，只有在返回不同的对象时，才会触发回调
+  // 需要添加 deep 属性，才能够对其深度侦听
   watch(()=>count.nums, () => {
     console.log(`count的值发生变化了`)
   },{
@@ -989,7 +1019,7 @@ level:6
   changeCount()
 ```
 上面这段代码中,用 watch 函数侦听 reactive 数据时，不需要添加 deep 属性，也能够对其深度侦听。
- 
+
 ---
 layout: two-cols
 layoutClass: gap-2
@@ -997,7 +1027,8 @@ level: 2
 ---
 # watchEffect()
 
-watch()仅在侦听数据变化时，才会执行回调。
+
+watch()不设置immediate参数时，仅在侦听数据变化时，才会执行回调。
 
 而watchEffect则会立即执行一次回调，就是说watchEffect会先执行一次回调，然后去追踪在回调中使用过的响应式属性，对这些属性进行追踪监听，当他们发生变化，从新执行回调。
 
@@ -1012,7 +1043,7 @@ watch()仅在侦听数据变化时，才会执行回调。
 
 ::right::
 
-# 
+#
 
 <div m="t-4"></div>
 
@@ -1036,7 +1067,7 @@ setTimeout(() => {
 ```ts
 watchEffect(() => {
    //在 watchEffect 中修改一个响应式的属性，不被watchEffect追踪监听。
-   person.value.age = 20; 
+   person.value.age = 20;
    console.log('watchEffect配置的回调执行了')
 })
 setTimeout(() => {
@@ -1109,470 +1140,128 @@ li{
 ---
 
 # 组件基础
+组件允许我们将 UI 划分为独立的、可重用的部分，并且可以对每个部分进行单独的思考。在实际应用中，组件常常被组织成层层嵌套的树状结构：
 ![alt text](/image.png)
 
 
 ---
-
----
-layout: image-right
-image: https://cover.sli.dev
+layout: two-cols
+layoutClass: gap-2
 ---
 
-```ts {all|5|7|7-8|10|all} twoslash
-// TwoSlash enables TypeScript hover information
-// and errors in markdown code blocks
-// More at https://shiki.style/packages/twoslash
+# 定义一个组件
 
-import { computed, ref } from 'vue'
+当使用构建步骤时，我们一般会将 Vue 组件定义在一个单独的 .vue 文件中，这被叫做单文件组件 (简称 SFC)：
+
+'./ButtonCounter.vue'
+```vue
+<script setup>
+import { ref } from 'vue'
 
 const count = ref(0)
-const doubled = computed(() => count.value * 2)
+</script>
 
-doubled.value = 2
+<template>
+  <button @click="count++">
+    You clicked me {{ count }} times.
+  </button>
+</template>
 ```
 
-<arrow v-click="[4, 5]" x1="350" y1="310" x2="195" y2="334" color="#953" width="2" arrowSize="1" />
+::right::
 
-<!-- This allow you to embed external code blocks -->
-<<< @/snippets/external.ts#snippet
+# 使用组件
 
-<!-- Footer -->
-[^1]: [Learn More](https://sli.dev/guide/syntax.html#line-highlighting)
+通过 `<script setup>`，导入的组件都在模板中直接可用。
+要传递动态值，我们还可以使用 v-bind 语法。
 
-<!-- Inline style -->
-<style>
-.footnotes-sep {
-  @apply mt-5 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
+<br/>
+<br/>
+
+```vue
+<script setup>
+import ButtonCounter from './ButtonCounter.vue'
+<template>
+  <h1>Here is a child component!</h1>
+  <ButtonCounter />
+  <ButtonCounter />
+  <ButtonCounter />
+</template>
+
+</script>
+```
 
 ---
 
 #
+- 传递props
 
-Powered by [shiki-magic-move](https://shiki-magic-move.netlify.app/), Slidev supports animations across multiple code snippets.
+父组件使用 v-bind 语法 (:title="post.title") 来传递动态 prop 值的
 
-Add multiple code blocks and wrap them with <code>````md magic-move</code> (four backticks) to enable the magic move. For example:
+- ​监听事件
 
-````md magic-move {lines: true}
-```ts {*|2|*}
-// step 1
-const author = reactive({
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-})
-```
+父组件可以通过 v-on 或 @ 来选择性地监听子组件上抛的事件，就像监听原生 DOM 事件那样
 
-```ts {*|1-2|3-4|3-4,8}
-// step 2
-export default {
-  data() {
-    return {
-      author: {
-        name: 'John Doe',
-        books: [
-          'Vue 2 - Advanced Guide',
-          'Vue 3 - Basic Guide',
-          'Vue 4 - The Mystery'
-        ]
-      }
-    }
-  }
-}
-```
+- `defineProps` 和 `defineEmits`
 
-```ts
-// step 3
-export default {
-  data: () => ({
-    author: {
-      name: 'John Doe',
-      books: [
-        'Vue 2 - Advanced Guide',
-        'Vue 3 - Basic Guide',
-        'Vue 4 - The Mystery'
-      ]
-    }
-  })
-}
-```
+在 Vue 3 中，defineProps 和 defineEmits 是用于定义组件的 props 和需要抛出的事件方法。
 
-Non-code blocks are ignored.
+仅可用于 `<script setup>` 之中，并且不需要导入。
 
-```vue
-<!-- step 4 -->
+
+`defineEmits` 返回一个等同于 $emit 方法的 emit 函数。
+
+`defineProps` 声明的 props 会自动暴露给模板。
+
+---
+layout: two-cols
+---
+
+```vue {all|15-18}
 <script setup>
-const author = {
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-}
-</script>
-```
-````
+import { ref } from 'vue';
+import ChildComponent from './ChildComponent.vue';
 
----
+const message = ref('Hello from Parent Component');
 
-# 组件基础
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-You can use Vue components directly inside your slides.
-
-We have provided a few built-in components like `<Tweet/>` and `<Youtube/>` that you can use directly. And adding your custom components is also super easy.
-
-```html
-<Counter :count="10" />
-```
-
-<!-- ./components/Counter.vue -->
-<Counter :count="10" m="t-4" />
-
-Check out [the guides](https://sli.dev/builtin/components.html) for more.
-
-</div>
-<div>
-
-```html
-<Tweet id="1390115482657726468" />
-```
-
-<Tweet id="1390115482657726468" scale="0.65" />
-
-</div>
-</div>
-
-<!--
-Presenter note with **bold**, *italic*, and ~~striked~~ text.
-
-Also, HTML elements are valid:
-<div class="flex w-full">
-  <span style="flex-grow: 1;">Left content</span>
-  <span>Right content</span>
-</div>
--->
-
----
-class: px-20
----
-
-# Themes
-
-Slidev comes with powerful theming support. Themes can provide styles, layouts, components, or even configurations for tools. Switching between themes by just **one edit** in your frontmatter:
-
-<div grid="~ cols-2 gap-2" m="t-2">
-
-```yaml
----
-theme: default
----
-```
-
-```yaml
----
-theme: seriph
----
-```
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-default/01.png?raw=true" alt="">
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-seriph/01.png?raw=true" alt="">
-
-</div>
-
-Read more about [How to use a theme](https://sli.dev/themes/use.html) and
-check out the [Awesome Themes Gallery](https://sli.dev/themes/gallery.html).
-
----
-
-# Clicks Animations
-
-You can add `v-click` to elements to add a click animation.
-
-<div v-click>
-
-This shows up when you click the slide:
-
-```html
-<div v-click>This shows up when you click the slide.</div>
-```
-
-</div>
-
-<br>
-
-<v-click>
-
-The <span v-mark.red="3"><code>v-mark</code> directive</span>
-also allows you to add
-<span v-mark.circle.orange="4">inline marks</span>
-, powered by [Rough Notation](https://roughnotation.com/):
-
-```html
-<span v-mark.underline.orange>inline markers</span>
-```
-
-</v-click>
-
-<div mt-20 v-click>
-
-[Learn More](https://sli.dev/guide/animations#click-animations)
-
-</div>
-
----
-
-# Motions
-
-Motion animations are powered by [@vueuse/motion](https://motion.vueuse.org/), triggered by `v-motion` directive.
-
-```html
-<div
-  v-motion
-  :initial="{ x: -80 }"
-  :enter="{ x: 0 }"
-  :click-3="{ x: 80 }"
-  :leave="{ x: 1000 }"
->
-  Slidev
-</div>
-```
-
-<div class="w-60 relative">
-  <div class="relative w-40 h-40">
-    <img
-      v-motion
-      :initial="{ x: 800, y: -100, scale: 1.5, rotate: -50 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-square.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ y: 500, x: -100, scale: 2 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-circle.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ x: 600, y: 400, scale: 2, rotate: 100 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-triangle.png"
-      alt=""
-    />
-  </div>
-
-  <div
-    class="text-5xl absolute top-14 left-40 text-[#2B90B6] -z-1"
-    v-motion
-    :initial="{ x: -80, opacity: 0}"
-    :enter="{ x: 0, opacity: 1, transition: { delay: 2000, duration: 1000 } }">
-    Slidev
-  </div>
-</div>
-
-<!-- vue script setup scripts can be directly used in markdown, and will only affects current page -->
-<script setup lang="ts">
-const final = {
-  x: 0,
-  y: 0,
-  rotate: 0,
-  scale: 1,
-  transition: {
-    type: 'spring',
-    damping: 10,
-    stiffness: 20,
-    mass: 2
-  }
+function handleUpdateMessage(newMessage) {
+  message.value = newMessage;
 }
 </script>
 
-<div
-  v-motion
-  :initial="{ x:35, y: 30, opacity: 0}"
-  :enter="{ y: 0, opacity: 1, transition: { delay: 3500 } }">
-
-[Learn More](https://sli.dev/guide/animations.html#motion)
-
-</div>
-
----
-
-# LaTeX
-
-
-
----
-
-# Diagrams
-
-You can create diagrams / graphs from textual descriptions, directly in your Markdown.
-
-<div class="grid grid-cols-4 gap-5 pt-4 -mb-6">
-
-```mermaid {scale: 0.5, alt: 'A simple sequence diagram'}
-sequenceDiagram
-    Alice->John: Hello John, how are you?
-    Note over Alice,John: A typical interaction
-```
-
-```mermaid {theme: 'neutral', scale: 0.8}
-graph TD
-B[Text] --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
-
-```mermaid
-mindmap
-  root((mindmap))
-    Origins
-      Long history
-      ::icon(fa fa-book)
-      Popularisation
-        British popular psychology author Tony Buzan
-    Research
-      On effectiveness<br/>and features
-      On Automatic creation
-        Uses
-            Creative techniques
-            Strategic planning
-            Argument mapping
-    Tools
-      Pen and paper
-      Mermaid
-```
-
-```plantuml {scale: 0.7}
-@startuml
-
-package "Some Group" {
-  HTTP - [First Component]
-  [Another Component]
-}
-
-node "Other Groups" {
-  FTP - [Second Component]
-  [First Component] --> FTP
-}
-
-cloud {
-  [Example 1]
-}
-
-database "MySql" {
-  folder "This is my folder" {
-    [Folder 3]
-  }
-  frame "Foo" {
-    [Frame 4]
-  }
-}
-
-[Another Component] --> [Example 1]
-[Example 1] --> [Folder 3]
-[Folder 3] --> [Frame 4]
-
-@enduml
-```
-
-</div>
-
-[Learn More](https://sli.dev/guide/syntax.html#diagrams)
-
----
-foo: bar
-dragPos:
-  square: 691,32,167,_,-16
----
-
-# Draggable Elements
-
-Double-click on the draggable elements to edit their positions.
-
-<br>
-
-###### Directive Usage
-
-```md
-<img v-drag="'square'" src="https://sli.dev/logo.png">
-```
-
-<br>
-
-###### Component Usage
-
-```md
-<v-drag text-3xl>
-  <carbon:arrow-up />
-  Use the `v-drag` component to have a draggable container!
-</v-drag>
-```
-
-<v-drag pos="696,295,261,_,-15">
-  <div text-center text-3xl border border-main rounded>
-    Double-click me!
+<template>
+  <div class="body">
+    <p>{{ message }}</p>
+    <ChildComponent
+      :msg="message"
+      @updateMessage="handleUpdateMessage"
+    />
   </div>
-</v-drag>
-
-<img v-drag="'square'" src="https://sli.dev/logo.png">
-
-###### Draggable Arrow
-
-```md
-<v-drag-arrow two-way />
+</template>
 ```
 
-<v-drag-arrow pos="38,542,390,-49" two-way op70 />
 
----
-src: ./pages/multiple-entries.md
-hide: false
----
+::right::
+#
+<br>
+<ParentComponent1/>
 
----
-
-# Monaco Editor
-
-Slidev provides built-in Monaco Editor support.
-
-Add `{monaco}` to the code block to turn it into an editor:
-
-```ts {monaco}
-import { ref } from 'vue'
-import { emptyArray } from './external'
-
-const arr = ref(emptyArray(10))
-```
-
-Use `{monaco-run}` to create an editor that can execute the code directly in the slide:
-
-```ts {monaco-run}
-import { version } from 'vue'
-import { emptyArray, sayHello } from './external'
-
-sayHello()
-console.log(`vue ${version}`)
-console.log(emptyArray<number>(10).reduce(fib => [...fib, fib.at(-1)! + fib.at(-2)!], [1, 1]))
+```vue {all|2-8}
+<script setup>
+const props = defineProps({
+  msg: String
+});
+const emit = defineEmits(['updateMessage']);
+function updateMessage() {
+  emit('updateMessage', 'Hello from Child Component');
+}
+</script>
+<template>
+  <div>
+    <p>{{ msg }}</p>
+    <button class="button" @click="updateMessage">Send Message to Parent</button>
+  </div>
+</template>
 ```
 
 ---
@@ -1580,6 +1269,6 @@ layout: center
 class: text-center
 ---
 
-# Learn More
+# Thanks！
 
-[Documentation](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/showcases.html)
+

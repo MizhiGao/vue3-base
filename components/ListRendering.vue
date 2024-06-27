@@ -21,7 +21,7 @@ function removeTodo(todo) {
 </script>
 
 <template>
-    <body class="body">
+    <div class="body">
         <form @submit.prevent="addTodo">
           <input v-model="newTodo">
           <button class="button-remove">Add Todo</button>
@@ -32,7 +32,7 @@ function removeTodo(todo) {
             <button @click="removeTodo(todo)" class="button-remove">X</button>
           </li>
         </ul>
-    </body>
+    </div>
   </template>
 
 <style>

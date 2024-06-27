@@ -5,11 +5,9 @@ const text = ref('')
 </script>
 
 <template>
-    <body class="body">
+    <div class="body">
         <input v-model="text" placeholder="Type here" class="input">
         <p>{{ text }}</p>
-
-
-    </body>
+    </div>
 </template>
 

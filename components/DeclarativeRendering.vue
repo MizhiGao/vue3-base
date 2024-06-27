@@ -12,10 +12,10 @@ export default {
 </script>
 
 <template>
-  <body class="body">
+  <div class="body">
     <h1>{{ message }}</h1>
     <p>Count is: {{ counter.count }}</p>
-  </body>
+  </div>
 </template>
 
 <style>
