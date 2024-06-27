@@ -786,44 +786,146 @@ p{
 }
 </style>
 
+---
+layout: two-cols
+---
+
+# 表单输入绑定
+ 
+<FormBindings/>
+<br>
+<br>
+通过一起使用 v-bind 和 v-on，我们可以为表单输入元素创建双向绑定：
+
+```js
+<input 
+  :value="text" 
+  @input="event => text = event.target.value">
+```
+v-model 指令帮我们简化了这一步骤：
+
+```js
+<input v-model="text">
+```
+
+::right::
+
+# 
+
+
+```js 
+<script setup>
+import { ref } from 'vue'
+
+const text = ref('')
+</script>
+
+<template>
+  <input v-model="text" placeholder="Type here">
+  <p>{{ text }}</p>
+</template>
+```
+
+另外，v-model 还可以用于各种不同类型的输入，它会根据所使用的元素自动使用对应的 DOM 属性和事件组合：
+
+文本类型的 `<input>` 和 `<textarea>` 元素会绑定 **value property** 并侦听 **input** 事件；
+
+`<input type="checkbox">` 和 `<input type="radio">` 会绑定 **checked property** 并侦听 **change** 事件；
+
+`<select>` 会绑定 **value property** 并侦听 **change** 事件。
+
+---
+
+# 侦听器
+在Vue3中可以通过watch或者是watchEffect来创建侦听器。watch需要手动指定监听属性。而watchEffect类型计算属性，它会追踪在回调中使用的属性进行监听。
+
+- watch
+
+作用: 侦听一个或者多个数据的变化,数据变化时执行回调函数
+
+watch接收三个参数: 
+
+1 - 需要监听的对象
+
+2 - 侦听器回调函数 
+
+3 -  配置对象。
+
+watch 的第一个参数可以是不同形式的“数据源”：它可以是一个 ref (包括计算属性)、一个响应式对象、一个 getter 函数、或多个数据源组成的数组：
+
+- 配置对象 
+
+deep: 强制转成深层侦听器
+
+immediate: 强制侦听器的回调立即执行
+
+once: 回调只在源变化时触发一次
+<style>
+  p{
+    font-size:14px;
+    margin-top:0.25rem;
+    margin-bottom:0.25rem
+  }
+</style>
+---
+
+```ts {monaco-run}
+import { ref, watch } from 'vue'
+const x = ref(0)
+const y = ref(0)
+
+// 单个 ref
+watch(x, (newX) => {
+  console.log(`x is ${newX}`)
+})
+
+x.value = 1
+
+// getter 函数
+watch(
+  () => x.value + y.value,
+  (sum) => {
+    console.log(`sum of x + y is: ${sum}`)
+  }
+)
+
+// 多个来源组成的数组
+watch([x, () => y.value], ([newX, newY]) => {
+  console.log(`x is ${newX} and y is ${newY}`)
+})
+```
+
+---
+
+#
+
+
+1. 使用 watch 侦听 ref 定义的响应式数据（参数是原始数据类型的情况）
+
+```ts {monaco-run}
+import { ref, watch } from 'vue'
+
+let count = ref(0)
+watch(count, (newValue, oldValue) => {
+  console.log(`count的值变化了, 新值:${newValue}，旧值：${oldValue}`)
+})
+const changeCount = () => {
+  count.value += 10;
+}
+changeCount()
+```
 
 ---
 layout: two-cols
 layoutClass: gap-16
 transition: fade-out
+level:6
 ---
 
-# watch
-作用: 侦听一个或者多个数据的变化,数据变化时执行回调函数
+#
 
-两个额外参数: 1.immediate(立即执行) 2.deep(深度侦听)
-
-1.使用 watch 侦听 ref 定义的响应式数据（参数是原始数据类型的情况）
-
-```ts
-<script setup>
-  import { ref, watch } from 'vue'
-
-  let count = ref(0)
-  watch(count, (newValue, oldValue) => {
-    console.log(`count的值变化了，新值：${newValue}，旧值：${oldValue}`)
-  })
-  const changeCount = () => {
-    count.value += 10;
-  }
-</script>
-
-<template>
-  <div class="main">
-    <p>count: {{ count }}</p>
-    <button @click="changeCount">更新count</button>
-  </div>
-</template>
-```
 2. 使用 watch 侦听 ref 定义的响应式数据（参数是引用数据类型的情况）
-
-```ts
-<script setup>
+```js {monaco-run}
   import { ref, watch } from 'vue'
 
   let count = ref({ num: 0 })
@@ -833,51 +935,159 @@ transition: fade-out
   const changeCount = () => {
     count.value.num += 10;
   }
-</script>
-
-<template>
-  <div class="main">
-    <p>count: {{ count }}</p>
-    <button @click="changeCount">更新count</button>
-  </div>
-</template>
+  changeCount()
 ```
 这种情况是因为 watch 并没有对 count 进行深度侦听，但是需要注意的是，此时的 DOM 是能够更新的，
 
 要想深度侦听，只需要加一个对应的参数即可，{ deep: true }。
 
-3.  使用 watch 侦听 reactive 定义的响应式数据
+::right::
 
-```ts
-<script setup>
+```js {monaco-run}
+  import { ref, watch } from 'vue'
+
+  let count = ref({ num: 0 })
+  watch(count.value, () => {
+    console.log(`count的值发生变化了1`)
+  })
+  // 一个返回响应式对象的 getter 函数
+  // 只有在返回不同的对象时，才会触发回调
+  // 修改属性值不会触发
+  watch(()=>count.value, () => {
+    console.log(`count的值发生变化了2`)
+  })
+  //返回该属性的 getter 函数
+  watch(()=>count.value.num, () => {
+    console.log(`count的值发生变化了3`)
+  })
+  const changeCount = () => {
+    count.value.num += 10;
+  }
+  changeCount()
+```
+---
+
+#
+
+3.  使用 watch 侦听 reactive 定义的响应式数据
+```js {monaco-run}
   import { reactive, watch } from 'vue'
 
-  let count = reactive({ num: 0 })
+  let count = reactive({ nums: {num:0} })
   watch(count, () => {
     console.log(`count的值发生变化了`)
   })
+  watch(()=>count.nums, () => {
+    console.log(`count的值发生变化了`)
+  },{
+    deep: true
+  })
   const changeCount = () => {
-    count.num += 10;
+    count.nums.num += 10;
   }
-</script>
 
-<template>
-  <div class="main">
-    <p>count: {{ count }}</p>
-    <button @click="changeCount">更新count</button>
-  </div>
-</template>
+  changeCount()
 ```
-
 上面这段代码中,用 watch 函数侦听 reactive 数据时，不需要添加 deep 属性，也能够对其深度侦听。
  
 ---
+layout: two-cols
+layoutClass: gap-2
+level: 2
+---
+# watchEffect()
 
-# 表单输入绑定
+watch()仅在侦听数据变化时，才会执行回调。
 
+而watchEffect则会立即执行一次回调，就是说watchEffect会先执行一次回调，然后去追踪在回调中使用过的响应式属性，对这些属性进行追踪监听，当他们发生变化，从新执行回调。
+
+
+注意1：watchEffect 只有在回调中使用数据才会进行监听。修改属性是不被监听的。（即get属性才会监听，set属性不进行监听）
+
+注意2：watchEffect仅会监听同步使用的属性，在异步中使用属性，不会被追踪监听。
+
+结论：watchEffect只监听同步使用的属性。
+
+注意3：watchEffect是基于属性的追踪，如果监听的属性的值是一个对象，那么修改对象内部的属性，是不被监听到的。（watchEffect不是深度监听）
+
+::right::
+
+# 
+
+<div m="t-4"></div>
+
+````md magic-move {lines:true}
+```ts
+import { watchEffect, ref } from 'vue'
+const person = ref({
+  age:18,
+})
+watchEffect(() => {
+   let x: number = person.value.age;
+   console.log(x,'watchEffect配置的回调执行了')
+})
+
+person.value.age = 30;
+setTimeout(() => {
+   person.value.age = 30;
+}, 2000)
+```
+
+```ts
+watchEffect(() => {
+   //在 watchEffect 中修改一个响应式的属性，不被watchEffect追踪监听。
+   person.value.age = 20; 
+   console.log('watchEffect配置的回调执行了')
+})
+setTimeout(() => {
+   person.value.age = 30;//修改了值，但是监听失败。
+}, 3000)
+```
+
+```ts
+watchEffect(() => {
+   setTimeout(() => {
+      console.log(person.value.age);
+   }, 2000)
+   console.log('watchEffect配置的回调执行了')
+})
+setTimeout(() => {
+   person.value.age = 30;//修改了值，但是监听失败。
+}, 5000)
+```
+
+```js
+watchEffect(() => {
+   //监听property的值是一个对象。
+   console.log(person.property);
+})
+
+setTimeout(() => {
+   person.property.car = true;//修改对象里面的属性，不会被监听到。
+}, 3000)
+
+setTimeout(() => {
+   //修改property，重新指向一个对象，可以监听到。
+   person.property = {
+      car: false
+   }
+}, 5000)
+```
+````
+---
+
+# watch vs. watchEffect​
+
+watch 和 watchEffect 都能响应式地执行有副作用的回调。它们之间的主要区别是追踪响应式依赖的方式：
+
+watch 只追踪明确侦听的数据源。它不会追踪任何在回调中访问到的东西。另外，仅在数据源确实改变时才会触发回调。watch 会避免在发生副作用时追踪依赖，因此，我们能更加精确地控制回调函数的触发时机。
+
+watchEffect，则会在副作用发生期间追踪依赖。它会在同步执行过程中，自动追踪所有能访问到的响应式属性。这更方便，而且代码往往更简洁，但有时其响应性依赖关系会不那么明确。
 
 ---
-layout: two-cols
+layout: image-right
+image: /image-6.png
+backgroundSize: contain
 level: 2
 ---
 
@@ -890,6 +1100,12 @@ setup 初始化组件状态，定义响应式数据和方法
 - onBeforeUnmount()注册一个钩子，在组件实例被卸载之前调用。
 - onUnmounted() 注册一个回调函数，在组件实例被卸载之后调用。可以在这个钩子中手动清理一些副作用，例如计时器、DOM 事件监听器或者与服务器的连接。
 
+
+<style>
+li{
+  font-size:16px
+}
+</style>
 ---
 
 # 组件基础
